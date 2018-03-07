@@ -81,10 +81,10 @@ public class FileImportUtil {
             countryEntity.setName(name);
 
             String capital = null;
-            if (!Util.getInstance().isNullOrEmpty(countryGson.getCapital())) {
+            if (!CommonUtil.getInstance().isNullOrEmpty(countryGson.getCapital())) {
                 capital = countryGson.getCapital().get(0);
             }
-            if (Util.getInstance().isNullOrEmpty(capital)) {
+            if (CommonUtil.getInstance().isNullOrEmpty(capital)) {
                 // This applies i.e. for Macao
                 capital = name;
             }

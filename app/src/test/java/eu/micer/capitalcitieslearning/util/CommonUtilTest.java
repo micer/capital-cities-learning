@@ -10,11 +10,11 @@ import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class UtilTest {
+public class CommonUtilTest {
     @Mock
-    Util instance;
+    CommonUtil instance;
     @InjectMocks
-    Util util;
+    CommonUtil commonUtil;
 
     @Before
     public void setUp() {
@@ -23,14 +23,14 @@ public class UtilTest {
 
     @Test
     public void testIsNullOrEmptyNonEmptyString() {
-        boolean result = util.isNullOrEmpty("string");
+        boolean result = commonUtil.isNullOrEmpty("string");
 
         Assert.assertEquals(false, result);
     }
 
     @Test
     public void testIsNullOrEmptyEmptyString() {
-        boolean result = util.isNullOrEmpty("");
+        boolean result = commonUtil.isNullOrEmpty("");
 
         Assert.assertEquals(true, result);
     }
@@ -39,21 +39,21 @@ public class UtilTest {
     public void testIsNullOrEmptyNullString() {
         String testString = null;
 
-        boolean result = util.isNullOrEmpty(testString);
+        boolean result = commonUtil.isNullOrEmpty(testString);
 
         Assert.assertEquals(true, result);
     }
 
     @Test
     public void testIsNullOrEmpty2NonEmptyList() {
-        boolean result = util.isNullOrEmpty(Collections.singletonList("String"));
+        boolean result = commonUtil.isNullOrEmpty(Collections.singletonList("String"));
 
         Assert.assertEquals(false, result);
     }
 
     @Test
     public void testIsNullOrEmpty2EmptyList() {
-        boolean result = util.isNullOrEmpty(new ArrayList());
+        boolean result = commonUtil.isNullOrEmpty(new ArrayList());
 
         Assert.assertEquals(true, result);
     }
@@ -62,7 +62,7 @@ public class UtilTest {
     public void testIsNullOrEmpty2NullString() {
         ArrayList testList = null;
 
-        boolean result = util.isNullOrEmpty(testList);
+        boolean result = commonUtil.isNullOrEmpty(testList);
 
         Assert.assertEquals(true, result);
     }

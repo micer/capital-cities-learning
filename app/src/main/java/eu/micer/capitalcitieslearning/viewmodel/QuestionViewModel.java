@@ -14,30 +14,43 @@ import java.util.concurrent.ThreadLocalRandom;
 import eu.micer.capitalcitieslearning.MainApplication;
 import eu.micer.capitalcitieslearning.model.AnswerOptions;
 import eu.micer.capitalcitieslearning.repository.db.entity.CountryEntity;
+import eu.micer.capitalcitieslearning.util.CommonUtil;
 
 public class QuestionViewModel extends AndroidViewModel {
     private static final String TAG = QuestionViewModel.class.getSimpleName();
+    private MainApplication mainApplication;
+    private int totalAnswers;
+    private int correctAnswers;
 
     // MediatorLiveData can observe other LiveData objects and react on their emissions.
     private final MediatorLiveData<List<CountryEntity>> observableCountries;
-    private final MutableLiveData<CountryEntity> observableCountry;
+    private final MutableLiveData<CountryEntity> observableSelectedCountry;
+    private final MediatorLiveData<List<CountryEntity>> observableCountriesInRegion;
     private final MutableLiveData<AnswerOptions> observableAnswerOptions;
 
     public QuestionViewModel(@NonNull Application application) {
         super(application);
 
+        mainApplication = (MainApplication) application;
+
+        // All countries
         observableCountries = new MediatorLiveData<>();
         observableCountries.setValue(null);
 
-        LiveData<List<CountryEntity>> countries = ((MainApplication) application)
+        LiveData<List<CountryEntity>> countries = mainApplication
                 .getRepository()
                 .getCountries();
 
-        // observe the changes of the countries from the database and forward them
         observableCountries.addSource(countries, observableCountries::setValue);
 
-        observableCountry = new MutableLiveData<>();
+        // Countries in region
+        observableCountriesInRegion = new MediatorLiveData<>();
+        observableCountriesInRegion.setValue(null);
+
+        observableSelectedCountry = new MutableLiveData<>();
         observableAnswerOptions = new MutableLiveData<>();
+
+        correctAnswers = 0;
     }
 
     public void selectNextCountry() {
@@ -47,30 +60,13 @@ public class QuestionViewModel extends AndroidViewModel {
         }
         int randomNumber = ThreadLocalRandom.current().nextInt(0, getCountries().getValue().size() + 1);
         CountryEntity country = getCountries().getValue().get(randomNumber);
-        observableCountry.setValue(country);
-        initOptions(country);
-    }
+        observableSelectedCountry.setValue(country);
 
-    private void initOptions(CountryEntity country) {
-        int randomCorrectPosition = ThreadLocalRandom.current().nextInt(0, 4);
-        String correctOption = country.getCapital();
-        AnswerOptions answerOptions;
+        LiveData<List<CountryEntity>> countriesInRegion = mainApplication
+                .getRepository()
+                .getCountriesInRegion(country.getRegion());
 
-        switch (randomCorrectPosition) {
-            case 0:
-                answerOptions = new AnswerOptions(correctOption, "Praha", "Brno", "Ostrava");
-                break;
-            case 1:
-                answerOptions = new AnswerOptions("Praha", correctOption, "Brno", "Ostrava");
-                break;
-            case 2:
-                answerOptions = new AnswerOptions("Praha", "Brno", correctOption, "Ostrava");
-                break;
-            default:
-                answerOptions = new AnswerOptions("Praha", "Brno", "Ostrava", correctOption);
-        }
-
-        observableAnswerOptions.setValue(answerOptions);
+        observableCountriesInRegion.addSource(countriesInRegion, observableCountriesInRegion::setValue);
     }
 
     public LiveData<List<CountryEntity>> getCountries() {
@@ -78,14 +74,69 @@ public class QuestionViewModel extends AndroidViewModel {
     }
 
     public MutableLiveData<CountryEntity> getSelectedCountry() {
-        return observableCountry;
+        return observableSelectedCountry;
+    }
+
+    public LiveData<List<CountryEntity>> getCountriesInRegion() {
+        return observableCountriesInRegion;
     }
 
     public MutableLiveData<AnswerOptions> getAnswerOptions() {
         return observableAnswerOptions;
     }
 
-    public void selectOption(int option) {
+    public void onOptionSelected(int option) {
+        totalAnswers++;
+        boolean answerIsCorrect;
+        if (observableAnswerOptions.getValue() != null
+                && observableAnswerOptions.getValue().getCorrectOption() == option) {
+            answerIsCorrect = true;
+            Log.d(TAG, "Answer is correct!");
+            correctAnswers++;
+        } else {
+            answerIsCorrect = false;
+            Log.d(TAG, "Answer is incorrect!");
+        }
+
+        // TODO show feedback on UI
+
+        // Proceed to next question
         selectNextCountry();
+    }
+
+    public void updateOptions(List<CountryEntity> countriesInRegion) {
+        CountryEntity countryEntity = observableSelectedCountry.getValue();
+
+        if (countryEntity == null) {
+            return;
+        }
+
+        countriesInRegion.remove(countryEntity);
+        CountryEntity option1 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
+        countriesInRegion.remove(option1);
+        CountryEntity option2 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
+        countriesInRegion.remove(option2);
+        CountryEntity option3 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
+
+        int randomCorrectPosition = ThreadLocalRandom.current().nextInt(0, 4);
+        String correctOption = countryEntity.getCapital();
+        AnswerOptions answerOptions;
+
+        switch (randomCorrectPosition) {
+            case 0:
+                answerOptions = new AnswerOptions(correctOption, option1.getCapital(), option2.getCapital(), option3.getCapital());
+                break;
+            case 1:
+                answerOptions = new AnswerOptions(option1.getCapital(), correctOption, option2.getCapital(), option3.getCapital());
+                break;
+            case 2:
+                answerOptions = new AnswerOptions(option1.getCapital(), option2.getCapital(), correctOption, option3.getCapital());
+                break;
+            default:
+                answerOptions = new AnswerOptions(option1.getCapital(), option2.getCapital(), option3.getCapital(), correctOption);
+        }
+        answerOptions.setCorrectOption(randomCorrectPosition + 1);
+
+        observableAnswerOptions.setValue(answerOptions);
     }
 }

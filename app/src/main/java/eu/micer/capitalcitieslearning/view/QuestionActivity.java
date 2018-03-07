@@ -8,7 +8,7 @@ import android.util.Log;
 
 import eu.micer.capitalcitieslearning.R;
 import eu.micer.capitalcitieslearning.databinding.ActivityQuestionBinding;
-import eu.micer.capitalcitieslearning.util.Util;
+import eu.micer.capitalcitieslearning.util.CommonUtil;
 import eu.micer.capitalcitieslearning.viewmodel.QuestionViewModel;
 
 public class QuestionActivity extends AppCompatActivity {
@@ -29,8 +29,16 @@ public class QuestionActivity extends AppCompatActivity {
         viewModel.getCountries().observe(this, countryEntities -> {
             int cnt = countryEntities == null ? 0 : countryEntities.size();
             Log.d(TAG, "countries count: " + cnt);
-            if (!Util.getInstance().isNullOrEmpty(countryEntities)) {
+            if (!CommonUtil.getInstance().isNullOrEmpty(countryEntities)) {
                 viewModel.selectNextCountry();
+            }
+        });
+
+        viewModel.getCountriesInRegion().observe(this, countryEntities -> {
+            int cnt = countryEntities == null ? 0 : countryEntities.size();
+            Log.d(TAG, "countries in region count: " + cnt);
+            if (!CommonUtil.getInstance().isNullOrEmpty(countryEntities)) {
+                viewModel.updateOptions(countryEntities);
             }
         });
     }

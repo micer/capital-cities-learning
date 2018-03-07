@@ -23,4 +23,7 @@ public interface CountryDao {
 
     @Query("select * from countries where id = :countryId")
     CountryEntity loadCountrySync(int countryId);
+
+    @Query("select * from countries where region = :region")
+    LiveData<List<CountryEntity>> getCountriesInRegion(String region);
 }

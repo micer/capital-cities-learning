@@ -44,4 +44,8 @@ public class DataRepository {
     public LiveData<CountryEntity> loadCountry(final int countryId) {
         return database.countryDao().loadCountry(countryId);
     }
+
+    public LiveData<List<CountryEntity>> getCountriesInRegion(String region) {
+        return database.countryDao().getCountriesInRegion(region);
+    }
 }
