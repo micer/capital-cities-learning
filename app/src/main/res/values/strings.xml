@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Capital cities learning</string>
     <string name="start">Start the fun!</string>
+    <string name="correctAnswers">Correct answers: %1$d / %2$d</string>
 </resources>

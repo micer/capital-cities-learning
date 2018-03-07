@@ -19,14 +19,13 @@ import eu.micer.capitalcitieslearning.util.CommonUtil;
 public class QuestionViewModel extends AndroidViewModel {
     private static final String TAG = QuestionViewModel.class.getSimpleName();
     private MainApplication mainApplication;
-    private int totalAnswers;
-    private int correctAnswers;
 
-    // MediatorLiveData can observe other LiveData objects and react on their emissions.
     private final MediatorLiveData<List<CountryEntity>> observableCountries;
     private final MutableLiveData<CountryEntity> observableSelectedCountry;
     private final MediatorLiveData<List<CountryEntity>> observableCountriesInRegion;
     private final MutableLiveData<AnswerOptions> observableAnswerOptions;
+    private final MutableLiveData<Integer> observableTotalAnswers;
+    private final MutableLiveData<Integer> observableCorrectAnswers;
 
     public QuestionViewModel(@NonNull Application application) {
         super(application);
@@ -50,7 +49,11 @@ public class QuestionViewModel extends AndroidViewModel {
         observableSelectedCountry = new MutableLiveData<>();
         observableAnswerOptions = new MutableLiveData<>();
 
-        correctAnswers = 0;
+        // Answer statistics
+        observableTotalAnswers = new MutableLiveData<>();
+        observableTotalAnswers.setValue(0);
+        observableCorrectAnswers = new MutableLiveData<>();
+        observableCorrectAnswers.setValue(0);
     }
 
     public void selectNextCountry() {
@@ -69,36 +72,20 @@ public class QuestionViewModel extends AndroidViewModel {
         observableCountriesInRegion.addSource(countriesInRegion, observableCountriesInRegion::setValue);
     }
 
-    public LiveData<List<CountryEntity>> getCountries() {
-        return observableCountries;
-    }
-
-    public MutableLiveData<CountryEntity> getSelectedCountry() {
-        return observableSelectedCountry;
-    }
-
-    public LiveData<List<CountryEntity>> getCountriesInRegion() {
-        return observableCountriesInRegion;
-    }
-
-    public MutableLiveData<AnswerOptions> getAnswerOptions() {
-        return observableAnswerOptions;
-    }
-
     public void onOptionSelected(int option) {
-        totalAnswers++;
+        increaseIntegerLiveDataValue(observableTotalAnswers);
         boolean answerIsCorrect;
         if (observableAnswerOptions.getValue() != null
                 && observableAnswerOptions.getValue().getCorrectOption() == option) {
             answerIsCorrect = true;
             Log.d(TAG, "Answer is correct!");
-            correctAnswers++;
+            increaseIntegerLiveDataValue(observableCorrectAnswers);
         } else {
             answerIsCorrect = false;
             Log.d(TAG, "Answer is incorrect!");
         }
 
-        // TODO show feedback on UI
+        showFeedbackOnUi(answerIsCorrect);
 
         // Proceed to next question
         selectNextCountry();
@@ -138,5 +125,41 @@ public class QuestionViewModel extends AndroidViewModel {
         answerOptions.setCorrectOption(randomCorrectPosition + 1);
 
         observableAnswerOptions.setValue(answerOptions);
+    }
+
+    private void increaseIntegerLiveDataValue(MutableLiveData<Integer> liveData) {
+        if (liveData.getValue() == null) {
+            return;
+        }
+        liveData.postValue(liveData.getValue() + 1);
+    }
+
+    private void showFeedbackOnUi(boolean answerIsCorrect) {
+        // TODO show feedback on UI
+    }
+
+    // LiveData getters
+    public LiveData<List<CountryEntity>> getCountries() {
+        return observableCountries;
+    }
+
+    public LiveData<CountryEntity> getSelectedCountry() {
+        return observableSelectedCountry;
+    }
+
+    public LiveData<List<CountryEntity>> getCountriesInRegion() {
+        return observableCountriesInRegion;
+    }
+
+    public LiveData<AnswerOptions> getAnswerOptions() {
+        return observableAnswerOptions;
+    }
+
+    public LiveData<Integer> getTotalAnswers() {
+        return observableTotalAnswers;
+    }
+
+    public LiveData<Integer> getCorrectAnswers() {
+        return observableCorrectAnswers;
     }
 }
