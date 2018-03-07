@@ -5,6 +5,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -15,6 +16,7 @@ import eu.micer.capitalcitieslearning.MainApplication;
 import eu.micer.capitalcitieslearning.model.AnswerOptions;
 import eu.micer.capitalcitieslearning.repository.db.entity.CountryEntity;
 import eu.micer.capitalcitieslearning.util.CommonUtil;
+import io.reactivex.functions.Action;
 
 public class QuestionViewModel extends AndroidViewModel {
     private static final String TAG = QuestionViewModel.class.getSimpleName();
@@ -26,6 +28,8 @@ public class QuestionViewModel extends AndroidViewModel {
     private final MutableLiveData<AnswerOptions> observableAnswerOptions;
     private final MutableLiveData<Integer> observableTotalAnswers;
     private final MutableLiveData<Integer> observableCorrectAnswers;
+    private final MutableLiveData<Boolean> observableAnswerWasCorrect;
+    private final MutableLiveData<Boolean> observableFreezeUi;
 
     public QuestionViewModel(@NonNull Application application) {
         super(application);
@@ -54,6 +58,12 @@ public class QuestionViewModel extends AndroidViewModel {
         observableTotalAnswers.setValue(0);
         observableCorrectAnswers = new MutableLiveData<>();
         observableCorrectAnswers.setValue(0);
+
+        observableAnswerWasCorrect = new MutableLiveData<>();
+        observableAnswerWasCorrect.setValue(null);
+
+        observableFreezeUi = new MutableLiveData<>();
+        observableFreezeUi.setValue(false);
     }
 
     public void selectNextCountry() {
@@ -61,7 +71,7 @@ public class QuestionViewModel extends AndroidViewModel {
             Log.e(TAG, "No countries available!");
             return;
         }
-        int randomNumber = ThreadLocalRandom.current().nextInt(0, getCountries().getValue().size() + 1);
+        int randomNumber = ThreadLocalRandom.current().nextInt(0, getCountries().getValue().size());
         CountryEntity country = getCountries().getValue().get(randomNumber);
         observableSelectedCountry.setValue(country);
 
@@ -85,10 +95,7 @@ public class QuestionViewModel extends AndroidViewModel {
             Log.d(TAG, "Answer is incorrect!");
         }
 
-        showFeedbackOnUi(answerIsCorrect);
-
-        // Proceed to next question
-        selectNextCountry();
+        showFeedbackOnUi(answerIsCorrect, this::selectNextCountry);
     }
 
     public void updateOptions(List<CountryEntity> countriesInRegion) {
@@ -134,8 +141,21 @@ public class QuestionViewModel extends AndroidViewModel {
         liveData.postValue(liveData.getValue() + 1);
     }
 
-    private void showFeedbackOnUi(boolean answerIsCorrect) {
-        // TODO show feedback on UI
+    private void showFeedbackOnUi(boolean answerIsCorrect, Action doAfterDelay) {
+        observableFreezeUi.setValue(true);
+        observableAnswerWasCorrect.postValue(answerIsCorrect);
+
+        Handler handler = new Handler();
+        handler.postDelayed(() -> {
+            observableAnswerWasCorrect.postValue(null);
+            try {
+                doAfterDelay.run();
+            } catch (Exception e) {
+                Log.d(TAG, e.getMessage(), e);
+            } finally {
+                observableFreezeUi.setValue(false);
+            }
+        }, 1000);
     }
 
     // LiveData getters
@@ -161,5 +181,13 @@ public class QuestionViewModel extends AndroidViewModel {
 
     public LiveData<Integer> getCorrectAnswers() {
         return observableCorrectAnswers;
+    }
+
+    public MutableLiveData<Boolean> getAnswerWasCorrect() {
+        return observableAnswerWasCorrect;
+    }
+
+    public MutableLiveData<Boolean> getFreezeUi() {
+        return observableFreezeUi;
     }
 }

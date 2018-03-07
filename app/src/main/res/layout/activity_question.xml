@@ -11,20 +11,9 @@
     </data>
 
     <android.support.constraint.ConstraintLayout
+        android:id="@+id/constraint_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <TextView
-            android:id="@+id/tv_stats"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:text="@{@string/correctAnswers(vm.correctAnswers,vm.totalAnswers)}"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_country"
@@ -37,20 +26,35 @@
             android:text="@{vm.selectedCountry.name}"
             android:textSize="@dimen/selected_country_text_size"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/guideline2"
+            app:layout_constraintBottom_toTopOf="@+id/tv_stats"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Czech Republic" />
 
+        <TextView
+            android:id="@+id/tv_stats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="@{@string/correctAnswers(vm.correctAnswers,vm.totalAnswers)}"
+            app:layout_constraintBottom_toTopOf="@+id/guideline2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="@string/correctAnswers" />
+
         <Button
             android:id="@+id/btn_option1"
+            style="@style/btn_default"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="4dp"
+            android:enabled="@{!vm.freezeUi}"
             android:onClick="@{v -> vm.onOptionSelected(1)}"
             android:text="@{vm.answerOptions.option1}"
             app:layout_constraintBottom_toTopOf="@+id/guideline3"
@@ -61,12 +65,14 @@
 
         <Button
             android:id="@+id/btn_option2"
+            style="@style/btn_default"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="4dp"
+            android:enabled="@{!vm.freezeUi}"
             android:onClick="@{v -> vm.onOptionSelected(2)}"
             android:text="@{vm.answerOptions.option2}"
             app:layout_constraintBottom_toTopOf="@+id/guideline3"
@@ -77,12 +83,14 @@
 
         <Button
             android:id="@+id/btn_option3"
+            style="@style/btn_default"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:layout_marginBottom="8dp"
+            android:enabled="@{!vm.freezeUi}"
             android:onClick="@{v -> vm.onOptionSelected(3)}"
             android:text="@{vm.answerOptions.option3}"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -93,12 +101,14 @@
 
         <Button
             android:id="@+id/btn_option4"
+            style="@style/btn_default"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
+            android:enabled="@{!vm.freezeUi}"
             android:onClick="@{v -> vm.onOptionSelected(4)}"
             android:text="@{vm.answerOptions.option4}"
             app:layout_constraintBottom_toBottomOf="parent"

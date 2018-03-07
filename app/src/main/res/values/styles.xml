@@ -8,4 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="btn_default">
+        <item name="android:background">@drawable/btn_default</item>
+        <item name="android:padding">@dimen/btn_default_padding</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="btn_round">
+        <item name="android:background">@drawable/btn_round</item>
+        <item name="android:padding">@dimen/btn_default_padding</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
 </resources>
