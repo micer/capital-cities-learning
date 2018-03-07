@@ -14,7 +14,7 @@ import java.util.List;
 
 import eu.micer.capitalcitieslearning.repository.db.dao.CountryDao;
 import eu.micer.capitalcitieslearning.repository.db.entity.CountryEntity;
-import eu.micer.capitalcitieslearning.util.Util;
+import eu.micer.capitalcitieslearning.util.FileImportUtil;
 import io.reactivex.Completable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -56,7 +56,7 @@ public abstract class AppDatabase extends RoomDatabase {
                         Completable.create(e -> {
                             // Generate the data for pre-population
                             AppDatabase database = AppDatabase.getInstance(appContext);
-                            List<CountryEntity> countries = Util.getInstance().getCountriesFromJsonFile(appContext);
+                            List<CountryEntity> countries = FileImportUtil.getInstance().getCountriesFromJsonFile(appContext);
 
                             insertData(database, countries);
                             // notify that the database was created and it's ready to be used
