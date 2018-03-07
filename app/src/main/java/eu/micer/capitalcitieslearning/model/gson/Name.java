@@ -1,14 +1,13 @@
 
-package eu.micer.capitalcitieslearning.model;
+package eu.micer.capitalcitieslearning.model.gson;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.Parcelable.Creator;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Name implements Parcelable
-{
+public class Name implements Parcelable {
 
     @SerializedName("common")
     @Expose
@@ -20,7 +19,7 @@ public class Name implements Parcelable
 
 
         @SuppressWarnings({
-            "unchecked"
+                "unchecked"
         })
         public Name createFromParcel(Parcel in) {
             return new Name(in);
@@ -30,8 +29,7 @@ public class Name implements Parcelable
             return (new Name[size]);
         }
 
-    }
-    ;
+    };
 
     protected Name(Parcel in) {
         this.common = ((String) in.readValue((String.class.getClassLoader())));
@@ -63,7 +61,7 @@ public class Name implements Parcelable
     }
 
     public int describeContents() {
-        return  0;
+        return 0;
     }
 
 }

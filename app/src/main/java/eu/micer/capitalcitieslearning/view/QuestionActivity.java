@@ -4,9 +4,11 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import eu.micer.capitalcitieslearning.R;
 import eu.micer.capitalcitieslearning.databinding.ActivityQuestionBinding;
+import eu.micer.capitalcitieslearning.util.Util;
 import eu.micer.capitalcitieslearning.viewmodel.QuestionViewModel;
 
 public class QuestionActivity extends AppCompatActivity {
@@ -23,5 +25,13 @@ public class QuestionActivity extends AppCompatActivity {
         viewModel = ViewModelProviders.of(this).get(QuestionViewModel.class);
         binding.setVm(viewModel);
         binding.setLifecycleOwner(this);
+
+        viewModel.getCountries().observe(this, countryEntities -> {
+            int cnt = countryEntities == null ? 0 : countryEntities.size();
+            Log.d(TAG, "countries count: " + cnt);
+            if (!Util.getInstance().isNullOrEmpty(countryEntities)) {
+                viewModel.selectNextCountry();
+            }
+        });
     }
 }
