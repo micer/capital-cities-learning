@@ -3,4 +3,5 @@
     <dimen name="selected_country_text_size">30sp</dimen>
     <dimen name="btn_default_corner_radius">16dp</dimen>
     <dimen name="btn_default_padding">16dp</dimen>
+    <dimen name="remaining_time_text_size">16sp</dimen>
 </resources>

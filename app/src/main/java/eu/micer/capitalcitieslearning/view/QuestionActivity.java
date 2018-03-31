@@ -57,4 +57,11 @@ public class QuestionActivity extends AppCompatActivity {
             binding.constraintLayout.setBackgroundColor(color);
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        viewModel.startTimer();
+    }
 }

@@ -11,16 +11,24 @@ import android.util.Log;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import eu.micer.capitalcitieslearning.MainApplication;
 import eu.micer.capitalcitieslearning.model.AnswerOptions;
 import eu.micer.capitalcitieslearning.repository.db.entity.CountryEntity;
 import eu.micer.capitalcitieslearning.util.CommonUtil;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Action;
+import io.reactivex.schedulers.Schedulers;
 
 public class QuestionViewModel extends AndroidViewModel {
     private static final String TAG = QuestionViewModel.class.getSimpleName();
+    private static final long TIME_FOR_ANSWER = TimeUnit.SECONDS.toMillis(2);
+
     private MainApplication mainApplication;
+    private CompositeDisposable compositeDisposable;
 
     private final MediatorLiveData<List<CountryEntity>> observableCountries;
     private final MutableLiveData<CountryEntity> observableSelectedCountry;
@@ -30,11 +38,14 @@ public class QuestionViewModel extends AndroidViewModel {
     private final MutableLiveData<Integer> observableCorrectAnswers;
     private final MutableLiveData<Boolean> observableAnswerWasCorrect;
     private final MutableLiveData<Boolean> observableFreezeUi;
+    private final MutableLiveData<Long> observableRemainingTime;
 
     public QuestionViewModel(@NonNull Application application) {
         super(application);
 
         mainApplication = (MainApplication) application;
+
+        compositeDisposable = new CompositeDisposable();
 
         // All countries
         observableCountries = new MediatorLiveData<>();
@@ -64,6 +75,9 @@ public class QuestionViewModel extends AndroidViewModel {
 
         observableFreezeUi = new MutableLiveData<>();
         observableFreezeUi.setValue(false);
+
+        // Timer - remaining time
+        observableRemainingTime = new MutableLiveData<>();
     }
 
     public void selectNextCountry() {
@@ -158,6 +172,28 @@ public class QuestionViewModel extends AndroidViewModel {
         }, 1000);
     }
 
+    public void startTimer() {
+        observableRemainingTime.setValue(TIME_FOR_ANSWER);
+        compositeDisposable.add(Observable.timer(1, TimeUnit.MILLISECONDS, Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .repeatUntil(() -> observableRemainingTime.getValue() == null || observableRemainingTime.getValue() <= 0)
+                .subscribe(tick -> {
+                    long time;
+                    if (observableRemainingTime.getValue() == null) {
+                        time = TIME_FOR_ANSWER;
+                    } else {
+                        time = observableRemainingTime.getValue() - 1;
+                    }
+                    observableRemainingTime.setValue(time);
+                }, Throwable::printStackTrace, () -> {
+                    showFeedbackOnUi(false, () -> {
+                        selectNextCountry();
+                        startTimer();
+                    });
+                })
+        );
+    }
+
     // LiveData getters
     public LiveData<List<CountryEntity>> getCountries() {
         return observableCountries;
@@ -189,5 +225,9 @@ public class QuestionViewModel extends AndroidViewModel {
 
     public MutableLiveData<Boolean> getFreezeUi() {
         return observableFreezeUi;
+    }
+
+    public MutableLiveData<Long> getRemainingTime() {
+        return observableRemainingTime;
     }
 }

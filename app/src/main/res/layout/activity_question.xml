@@ -45,6 +45,20 @@
             app:layout_constraintStart_toStartOf="parent"
             tools:text="@string/correctAnswers" />
 
+        <TextView
+            android:id="@+id/tv_remaining_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/remaining_time_text_size"
+            tools:text="3245"
+            android:text="@{String.valueOf(vm.remainingTime)}"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <Button
             android:id="@+id/btn_option1"
             style="@style/btn_default"
