@@ -20,6 +20,7 @@ import eu.micer.capitalcitieslearning.util.CommonUtil;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
@@ -28,7 +29,7 @@ public class QuestionViewModel extends AndroidViewModel {
     private static final long TIME_FOR_ANSWER = TimeUnit.SECONDS.toMillis(2);
 
     private MainApplication mainApplication;
-    private CompositeDisposable compositeDisposable;
+    private Disposable timerDisposable;
 
     private final MediatorLiveData<List<CountryEntity>> observableCountries;
     private final MutableLiveData<CountryEntity> observableSelectedCountry;
@@ -44,8 +45,6 @@ public class QuestionViewModel extends AndroidViewModel {
         super(application);
 
         mainApplication = (MainApplication) application;
-
-        compositeDisposable = new CompositeDisposable();
 
         // All countries
         observableCountries = new MediatorLiveData<>();
@@ -96,20 +95,32 @@ public class QuestionViewModel extends AndroidViewModel {
         observableCountriesInRegion.addSource(countriesInRegion, observableCountriesInRegion::setValue);
     }
 
+    /**
+     *
+     * @param option options 1-4 or -1 when time's up = no answer
+     */
     public void onOptionSelected(int option) {
         increaseIntegerLiveDataValue(observableTotalAnswers);
         boolean answerIsCorrect;
-        if (observableAnswerOptions.getValue() != null
-                && observableAnswerOptions.getValue().getCorrectOption() == option) {
-            answerIsCorrect = true;
-            Log.d(TAG, "Answer is correct!");
-            increaseIntegerLiveDataValue(observableCorrectAnswers);
-        } else {
+
+        if (option == AnswerOptions.OPTION_TIME_IS_UP) {
             answerIsCorrect = false;
-            Log.d(TAG, "Answer is incorrect!");
+        } else {
+            if (observableAnswerOptions.getValue() != null
+                    && observableAnswerOptions.getValue().getCorrectOption() == option) {
+                answerIsCorrect = true;
+                Log.d(TAG, "Answer is correct!");
+                increaseIntegerLiveDataValue(observableCorrectAnswers);
+            } else {
+                answerIsCorrect = false;
+                Log.d(TAG, "Answer is incorrect!");
+            }
         }
 
-        showFeedbackOnUi(answerIsCorrect, this::selectNextCountry);
+        showFeedbackOnUi(answerIsCorrect, () -> {
+            selectNextCountry();
+            startTimer();
+        });
     }
 
     public void updateOptions(List<CountryEntity> countriesInRegion) {
@@ -156,6 +167,9 @@ public class QuestionViewModel extends AndroidViewModel {
     }
 
     private void showFeedbackOnUi(boolean answerIsCorrect, Action doAfterDelay) {
+        if (timerDisposable != null) {
+            timerDisposable.dispose();
+        }
         observableFreezeUi.setValue(true);
         observableAnswerWasCorrect.postValue(answerIsCorrect);
 
@@ -174,7 +188,7 @@ public class QuestionViewModel extends AndroidViewModel {
 
     public void startTimer() {
         observableRemainingTime.setValue(TIME_FOR_ANSWER);
-        compositeDisposable.add(Observable.timer(1, TimeUnit.MILLISECONDS, Schedulers.computation())
+        timerDisposable = Observable.timer(1, TimeUnit.MILLISECONDS, Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .repeatUntil(() -> observableRemainingTime.getValue() == null || observableRemainingTime.getValue() <= 0)
                 .subscribe(tick -> {
@@ -186,12 +200,14 @@ public class QuestionViewModel extends AndroidViewModel {
                     }
                     observableRemainingTime.setValue(time);
                 }, Throwable::printStackTrace, () -> {
-                    showFeedbackOnUi(false, () -> {
-                        selectNextCountry();
-                        startTimer();
-                    });
-                })
-        );
+                    onOptionSelected(-1);
+                });
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        timerDisposable.dispose();
     }
 
     // LiveData getters

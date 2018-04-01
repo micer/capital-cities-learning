@@ -10,6 +10,7 @@ import android.view.View;
 import eu.micer.capitalcitieslearning.R;
 import eu.micer.capitalcitieslearning.databinding.ActivityMainBinding;
 import eu.micer.capitalcitieslearning.viewmodel.MainViewModel;
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -2,6 +2,12 @@ package eu.micer.capitalcitieslearning.model;
 
 public class AnswerOptions {
 
+    public static final int OPTION_1 = 1;
+    public static final int OPTION_2 = 2;
+    public static final int OPTION_3 = 3;
+    public static final int OPTION_4 = 4;
+    public static final int OPTION_TIME_IS_UP = -1;
+
     private String option1;
     private String option2;
     private String option3;
