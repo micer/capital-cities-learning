@@ -14,7 +14,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import eu.micer.capitalcitieslearning.MainApplication;
-import eu.micer.capitalcitieslearning.model.AnswerOptions;
+import eu.micer.capitalcitieslearning.model.AnswerOption;
+import eu.micer.capitalcitieslearning.model.QuestionData;
 import eu.micer.capitalcitieslearning.repository.db.entity.CountryEntity;
 import eu.micer.capitalcitieslearning.util.CommonUtil;
 import io.reactivex.Observable;
@@ -30,11 +31,11 @@ public class QuestionViewModel extends AndroidViewModel {
     private MainApplication mainApplication;
     private Disposable timerDisposable;
     private long time = TIME_FOR_ANSWER;
+    private CountryEntity selectedCountry;
 
     private final MediatorLiveData<List<CountryEntity>> observableCountries;
-    private final MutableLiveData<CountryEntity> observableSelectedCountry;
     private final MediatorLiveData<List<CountryEntity>> observableCountriesInRegion;
-    private final MutableLiveData<AnswerOptions> observableAnswerOptions;
+    private final MutableLiveData<QuestionData> observableQuestionData;
     private final MutableLiveData<Integer> observableTotalAnswers;
     private final MutableLiveData<Integer> observableCorrectAnswers;
     private final MutableLiveData<Boolean> observableAnswerWasCorrect;
@@ -60,8 +61,7 @@ public class QuestionViewModel extends AndroidViewModel {
         observableCountriesInRegion = new MediatorLiveData<>();
         observableCountriesInRegion.setValue(null);
 
-        observableSelectedCountry = new MutableLiveData<>();
-        observableAnswerOptions = new MutableLiveData<>();
+        observableQuestionData = new MutableLiveData<>();
 
         // Answer statistics
         observableTotalAnswers = new MutableLiveData<>();
@@ -86,7 +86,7 @@ public class QuestionViewModel extends AndroidViewModel {
         }
         int randomNumber = ThreadLocalRandom.current().nextInt(0, getCountries().getValue().size());
         CountryEntity country = getCountries().getValue().get(randomNumber);
-        observableSelectedCountry.setValue(country);
+        selectedCountry = country;
 
         LiveData<List<CountryEntity>> countriesInRegion = mainApplication
                 .getRepository()
@@ -98,15 +98,14 @@ public class QuestionViewModel extends AndroidViewModel {
     /**
      * @param option options 1-4 or -1 when time's up = no answer
      */
-    public void onOptionSelected(int option) {
+    public void onOptionSelected(AnswerOption option) {
         increaseIntegerLiveDataValue(observableTotalAnswers);
         boolean answerIsCorrect;
 
-        if (option == AnswerOptions.OPTION_TIME_IS_UP) {
+        if (option == null) {
             answerIsCorrect = false;
         } else {
-            if (observableAnswerOptions.getValue() != null
-                    && observableAnswerOptions.getValue().getCorrectOption() == option) {
+            if (option.isCorrect()) {
                 answerIsCorrect = true;
                 Log.d(TAG, "Answer is correct!");
                 increaseIntegerLiveDataValue(observableCorrectAnswers);
@@ -124,39 +123,41 @@ public class QuestionViewModel extends AndroidViewModel {
     }
 
     public void updateOptions(List<CountryEntity> countriesInRegion) {
-        CountryEntity countryEntity = observableSelectedCountry.getValue();
 
-        if (countryEntity == null) {
+        if (selectedCountry == null) {
             return;
         }
 
-        countriesInRegion.remove(countryEntity);
-        CountryEntity option1 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
-        countriesInRegion.remove(option1);
-        CountryEntity option2 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
-        countriesInRegion.remove(option2);
-        CountryEntity option3 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
+        countriesInRegion.remove(selectedCountry);
+        CountryEntity countryEntity1 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
+        countriesInRegion.remove(countryEntity1);
+        CountryEntity countryEntity2 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
+        countriesInRegion.remove(countryEntity2);
+        CountryEntity countryEntity3 = CommonUtil.getInstance().getRandomItem(countriesInRegion);
 
         int randomCorrectPosition = ThreadLocalRandom.current().nextInt(0, 4);
-        String correctOption = countryEntity.getCapital();
-        AnswerOptions answerOptions;
+        QuestionData questionData;
+
+        AnswerOption option = new AnswerOption(selectedCountry.getCapital(), true);
+        AnswerOption option1 = new AnswerOption(countryEntity1.getCapital(), false);
+        AnswerOption option2 = new AnswerOption(countryEntity2.getCapital(), false);
+        AnswerOption option3 = new AnswerOption(countryEntity3.getCapital(), false);
 
         switch (randomCorrectPosition) {
             case 0:
-                answerOptions = new AnswerOptions(correctOption, option1.getCapital(), option2.getCapital(), option3.getCapital());
+                questionData = new QuestionData(selectedCountry, option, option1, option2, option3);
                 break;
             case 1:
-                answerOptions = new AnswerOptions(option1.getCapital(), correctOption, option2.getCapital(), option3.getCapital());
+                questionData = new QuestionData(selectedCountry, option3, option, option1, option2);
                 break;
             case 2:
-                answerOptions = new AnswerOptions(option1.getCapital(), option2.getCapital(), correctOption, option3.getCapital());
+                questionData = new QuestionData(selectedCountry, option2, option3, option, option1);
                 break;
             default:
-                answerOptions = new AnswerOptions(option1.getCapital(), option2.getCapital(), option3.getCapital(), correctOption);
+                questionData = new QuestionData(selectedCountry, option1, option2, option3, option);
         }
-        answerOptions.setCorrectOption(randomCorrectPosition + 1);
 
-        observableAnswerOptions.setValue(answerOptions);
+        observableQuestionData.setValue(questionData);
     }
 
     private void increaseIntegerLiveDataValue(MutableLiveData<Integer> liveData) {
@@ -197,7 +198,7 @@ public class QuestionViewModel extends AndroidViewModel {
                             observableRemainingTime.setValue(time);
                         },
                         Throwable::printStackTrace,
-                        () -> onOptionSelected(-1)
+                        () -> onOptionSelected(null)
                 );
     }
 
@@ -212,16 +213,12 @@ public class QuestionViewModel extends AndroidViewModel {
         return observableCountries;
     }
 
-    public LiveData<CountryEntity> getSelectedCountry() {
-        return observableSelectedCountry;
-    }
-
     public LiveData<List<CountryEntity>> getCountriesInRegion() {
         return observableCountriesInRegion;
     }
 
-    public LiveData<AnswerOptions> getAnswerOptions() {
-        return observableAnswerOptions;
+    public LiveData<QuestionData> getQuestionData() {
+        return observableQuestionData;
     }
 
     public LiveData<Integer> getTotalAnswers() {

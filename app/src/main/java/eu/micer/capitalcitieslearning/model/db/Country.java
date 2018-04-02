@@ -1,4 +1,4 @@
-package eu.micer.capitalcitieslearning.model;
+package eu.micer.capitalcitieslearning.model.db;
 
 public interface Country {
     int getId();

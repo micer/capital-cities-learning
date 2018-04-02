@@ -4,7 +4,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
-import eu.micer.capitalcitieslearning.model.Country;
+import eu.micer.capitalcitieslearning.model.db.Country;
 
 @Entity(tableName = "countries")
 public class CountryEntity implements Country {
