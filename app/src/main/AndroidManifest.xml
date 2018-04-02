@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="eu.micer.capitalcitieslearning">
 
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -15,9 +17,25 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Accepts URIs that begin with "http://www.micer.eu/capital-cities-learning” -->
+                <data
+                    android:host="www.micer.eu"
+                    android:pathPrefix="/capital-cities-learning"
+                    android:scheme="http" />
+                <!-- note that the leading "/" is required for pathPrefix-->
+                <!-- Accepts URIs that begin with "capcities://capital-cities-learning” -->
+                <data
+                    android:host="capital-cities-learning"
+                    android:scheme="capcities" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.QuestionActivity" />
+        <activity
+            android:name=".view.QuestionActivity" />
     </application>
 
 </manifest>

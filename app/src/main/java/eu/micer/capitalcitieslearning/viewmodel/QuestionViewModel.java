@@ -19,17 +19,17 @@ import eu.micer.capitalcitieslearning.repository.db.entity.CountryEntity;
 import eu.micer.capitalcitieslearning.util.CommonUtil;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
 public class QuestionViewModel extends AndroidViewModel {
     private static final String TAG = QuestionViewModel.class.getSimpleName();
-    private static final long TIME_FOR_ANSWER = TimeUnit.SECONDS.toMillis(2);
+    public static final long TIME_FOR_ANSWER = TimeUnit.SECONDS.toMillis(5);
 
     private MainApplication mainApplication;
     private Disposable timerDisposable;
+    private long time = TIME_FOR_ANSWER;
 
     private final MediatorLiveData<List<CountryEntity>> observableCountries;
     private final MutableLiveData<CountryEntity> observableSelectedCountry;
@@ -96,7 +96,6 @@ public class QuestionViewModel extends AndroidViewModel {
     }
 
     /**
-     *
      * @param option options 1-4 or -1 when time's up = no answer
      */
     public void onOptionSelected(int option) {
@@ -119,6 +118,7 @@ public class QuestionViewModel extends AndroidViewModel {
 
         showFeedbackOnUi(answerIsCorrect, () -> {
             selectNextCountry();
+            time = TIME_FOR_ANSWER;
             startTimer();
         });
     }
@@ -187,21 +187,18 @@ public class QuestionViewModel extends AndroidViewModel {
     }
 
     public void startTimer() {
+        int delay = 25;
         observableRemainingTime.setValue(TIME_FOR_ANSWER);
-        timerDisposable = Observable.timer(1, TimeUnit.MILLISECONDS, Schedulers.computation())
+        timerDisposable = Observable.timer(delay, TimeUnit.MILLISECONDS, Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
-                .repeatUntil(() -> observableRemainingTime.getValue() == null || observableRemainingTime.getValue() <= 0)
+                .repeatUntil(() -> time <= 0)
                 .subscribe(tick -> {
-                    long time;
-                    if (observableRemainingTime.getValue() == null) {
-                        time = TIME_FOR_ANSWER;
-                    } else {
-                        time = observableRemainingTime.getValue() - 1;
-                    }
-                    observableRemainingTime.setValue(time);
-                }, Throwable::printStackTrace, () -> {
-                    onOptionSelected(-1);
-                });
+                            time = time - delay;
+                            observableRemainingTime.setValue(time);
+                        },
+                        Throwable::printStackTrace,
+                        () -> onOptionSelected(-1)
+                );
     }
 
     @Override
