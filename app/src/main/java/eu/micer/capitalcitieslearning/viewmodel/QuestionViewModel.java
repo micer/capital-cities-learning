@@ -38,7 +38,6 @@ public class QuestionViewModel extends AndroidViewModel {
     private final MutableLiveData<QuestionData> observableQuestionData;
     private final MutableLiveData<Integer> observableTotalAnswers;
     private final MutableLiveData<Integer> observableCorrectAnswers;
-    private final MutableLiveData<Boolean> observableAnswerWasCorrect;
     private final MutableLiveData<Boolean> observableFreezeUi;
     private final MutableLiveData<Long> observableRemainingTime;
 
@@ -69,9 +68,6 @@ public class QuestionViewModel extends AndroidViewModel {
         observableCorrectAnswers = new MutableLiveData<>();
         observableCorrectAnswers.setValue(0);
 
-        observableAnswerWasCorrect = new MutableLiveData<>();
-        observableAnswerWasCorrect.setValue(null);
-
         observableFreezeUi = new MutableLiveData<>();
         observableFreezeUi.setValue(false);
 
@@ -95,27 +91,20 @@ public class QuestionViewModel extends AndroidViewModel {
         observableCountriesInRegion.addSource(countriesInRegion, observableCountriesInRegion::setValue);
     }
 
-    /**
-     * @param option options 1-4 or -1 when time's up = no answer
-     */
     public void onOptionSelected(AnswerOption option) {
         increaseIntegerLiveDataValue(observableTotalAnswers);
-        boolean answerIsCorrect;
 
-        if (option == null) {
-            answerIsCorrect = false;
-        } else {
-            if (option.isCorrect()) {
-                answerIsCorrect = true;
-                Log.d(TAG, "Answer is correct!");
-                increaseIntegerLiveDataValue(observableCorrectAnswers);
-            } else {
-                answerIsCorrect = false;
-                Log.d(TAG, "Answer is incorrect!");
-            }
+        QuestionData data = observableQuestionData.getValue();
+        if (data != null) {
+            data.setAnswered(true);
+            observableQuestionData.postValue(data);
         }
 
-        showFeedbackOnUi(answerIsCorrect, () -> {
+        if (option != null) {
+            option.setSelectedAsAnswer(true);
+        }
+
+        showFeedbackOnUi(() -> {
             selectNextCountry();
             time = TIME_FOR_ANSWER;
             startTimer();
@@ -167,16 +156,14 @@ public class QuestionViewModel extends AndroidViewModel {
         liveData.postValue(liveData.getValue() + 1);
     }
 
-    private void showFeedbackOnUi(boolean answerIsCorrect, Action doAfterDelay) {
+    private void showFeedbackOnUi(Action doAfterDelay) {
         if (timerDisposable != null) {
             timerDisposable.dispose();
         }
         observableFreezeUi.setValue(true);
-        observableAnswerWasCorrect.postValue(answerIsCorrect);
 
         Handler handler = new Handler();
         handler.postDelayed(() -> {
-            observableAnswerWasCorrect.postValue(null);
             try {
                 doAfterDelay.run();
             } catch (Exception e) {
@@ -227,10 +214,6 @@ public class QuestionViewModel extends AndroidViewModel {
 
     public LiveData<Integer> getCorrectAnswers() {
         return observableCorrectAnswers;
-    }
-
-    public MutableLiveData<Boolean> getAnswerWasCorrect() {
-        return observableAnswerWasCorrect;
     }
 
     public MutableLiveData<Boolean> getFreezeUi() {

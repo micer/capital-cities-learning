@@ -4,6 +4,7 @@ public class AnswerOption {
 
     private String answer;
     private boolean isCorrect;
+    private boolean selectedAsAnswer;
 
     public AnswerOption(String answer, boolean isCorrect) {
         this.answer = answer;
@@ -24,5 +25,13 @@ public class AnswerOption {
 
     public void setCorrect(boolean correct) {
         isCorrect = correct;
+    }
+
+    public boolean isSelectedAsAnswer() {
+        return selectedAsAnswer;
+    }
+
+    public void setSelectedAsAnswer(boolean selectedAsAnswer) {
+        this.selectedAsAnswer = selectedAsAnswer;
     }
 }

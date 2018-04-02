@@ -3,7 +3,6 @@ package eu.micer.capitalcitieslearning.view;
 import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -41,20 +40,6 @@ public class QuestionActivity extends AppCompatActivity {
             if (!CommonUtil.getInstance().isNullOrEmpty(countryEntities)) {
                 viewModel.updateOptions(countryEntities);
             }
-        });
-
-        viewModel.getAnswerWasCorrect().observe(this, answerCorrect -> {
-            @IdRes int color;
-
-            if (answerCorrect == null) {
-                color = getResources().getColor(R.color.background_color);
-            } else if (answerCorrect) {
-                color = getResources().getColor(R.color.green);
-            } else {
-                color = getResources().getColor(R.color.red);
-            }
-
-            binding.constraintLayout.setBackgroundColor(color);
         });
     }
 

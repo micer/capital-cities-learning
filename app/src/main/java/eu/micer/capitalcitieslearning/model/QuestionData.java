@@ -9,6 +9,7 @@ public class QuestionData {
     private AnswerOption option2;
     private AnswerOption option3;
     private AnswerOption option4;
+    private boolean answered;
 
     public QuestionData(CountryEntity country, AnswerOption option1, AnswerOption option2, AnswerOption option3, AnswerOption option4) {
         this.country = country;
@@ -36,5 +37,13 @@ public class QuestionData {
 
     public CountryEntity getCountry() {
         return country;
+    }
+
+    public boolean isAnswered() {
+        return answered;
+    }
+
+    public void setAnswered(boolean answered) {
+        this.answered = answered;
     }
 }
